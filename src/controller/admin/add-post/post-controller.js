@@ -134,12 +134,12 @@ const updatePost = async(req,res)=>{
 
     if (req.files.admin_post[0]) {
         const pro = req.files.admin_post[0].path
-        const ress = await Deleteoncloudinary(predata.admin_post);
-        // console.log(ress)
-        if (ress) {
+        
+        if(predata.admin_post){
+            const ress = await Deleteoncloudinary(predata.admin_post);
+        }
             const res = await Uploadoncloudinary(pro);
             data.admin_post = res.url;
-        }
         
     }
 

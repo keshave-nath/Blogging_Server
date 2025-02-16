@@ -283,12 +283,11 @@ const updateUser = async (req, res) => {
         if (req.files.profile[0]) {
 
             const pro = req.files.profile[0].path
-            const ress = await Deleteoncloudinary(predata.profile);
-            // console.log(ress)
-            if (ress) {
+            if(predata.profile){
+                const ress = await Deleteoncloudinary(predata.profile);
+            }
                 const res = await Uploadoncloudinary(pro);
                 data.profile = res.url;
-            }
             
         }
     }
