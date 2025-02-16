@@ -1,6 +1,8 @@
 const postModel = require("../../../models/admin/post");
 const fs = require('fs');
 const path = require('path');
+const Uploadoncloudinary = require("../../../middleware/cloudinary");
+const Deleteoncloudinary = require("../../../middleware/deletecloudinary");
 
 
 const addPost = async(req,res) => {
@@ -10,7 +12,13 @@ const addPost = async(req,res) => {
 
         if(req.files){
             if(req.files.admin_post){
-                data.admin_post = req.files.admin_post[0].filename
+
+                const pro = req.files.admin_post[0].path
+                // data.admin_post = req.files.admin_post[0].filename
+
+                const res = await Uploadoncloudinary(pro);
+
+                data.admin_post = res.url;
                 // if(fs.existsSync(`${filePath}/${predata.profile}`)){
                 //     fs.unlinkSync(`${filePath}/${predata.profile}`)
                 // }
@@ -49,10 +57,9 @@ const deletePost = async(req,res) => {
             const  filePath = path.resolve(__dirname, '../../../uploads/admin-posts');
             
             if(predata.admin_post){
-                // data.admin_post = req.files.admin_post[0].filename
-                if(fs.existsSync(`${filePath}/${predata.admin_post}`)){
-                    fs.unlinkSync(`${filePath}/${predata.admin_post}`)
-                }
+
+                const ress = await Deleteoncloudinary(predata.admin_post);
+
             }
         }
     
@@ -125,14 +132,15 @@ const updatePost = async(req,res)=>{
     // const  filePath = path.join('D:','ws-cube','react','Next_Js','BLOGGING_WEBSITE','backend','src','uploads','admin-posts');
     const  filePath = path.resolve(__dirname, '../../../uploads/admin-posts');
 
-    // console.log(filePath)
-
-       if(req.files.admin_post){
-        data.admin_post = req.files.admin_post[0].filename
-
-        if(fs.existsSync(`${filePath}/${predata.admin_post}`)){
-            fs.unlinkSync(`${filePath}/${predata.admin_post}`)
+    if (req.files.admin_post[0]) {
+        const pro = req.files.admin_post[0].path
+        const ress = await Deleteoncloudinary(predata.admin_post);
+        // console.log(ress)
+        if (ress) {
+            const res = await Uploadoncloudinary(pro);
+            data.admin_post = res.url;
         }
+        
     }
 
     // if(req.files.thumbnail_animation){

@@ -7,6 +7,10 @@ const UserCommentSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'users',
     },
+    posts:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'userposts',
+    },
     comments:{
         type: String,
     },

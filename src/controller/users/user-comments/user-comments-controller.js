@@ -6,7 +6,7 @@ const adduserComments = async(req,res) => {
     try{
 
         const data = req.body
-        console.log(data)
+        // console.log(data)
 
         // console.log(data)
         const datatosave = new UserComment(data)
@@ -20,8 +20,12 @@ const adduserComments = async(req,res) => {
 
 const viewuserComments = async(req,res) => {
     try{
-        const response = await UserComment.find()
+        // console.log(req.params)
+        const response = await UserComment.find({posts:req.params})
         .populate('userrs')
+        .populate('posts')
+
+        // console.log(response)
         const file_path = `${req.protocol}://${req.get('host')}/keshaveBlog-files/users/`;
         res.status(200).json({message:'Fetched',data:response,file_path})
     }

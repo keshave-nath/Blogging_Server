@@ -5,7 +5,7 @@ const { adduserComments, viewuserComments } = require('../../../controller/contr
 const usercommentroutes = express.Router();
 
 usercommentroutes.post('/add-user-comments',adduserComments);
-usercommentroutes.get('/view-user-comments',viewuserComments);
+usercommentroutes.get('/view-user-comments/:_id',viewuserComments);
 // userpostroutes.delete('/delete-user-post/:_id',deleteuserPost);
 // userpostroutes.post('/update-user-status/:_id',statususerupdate);
 // userpostroutes.post('/multi-delete-post',multiDeletePost);

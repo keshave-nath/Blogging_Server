@@ -3,20 +3,26 @@ const fs = require('fs');
 const path = require('path');
 const UserPost = require('../../../models/users/userposts');
 const User = require('../../../models/users/users');
+const Uploadoncloudinary = require('../../../middleware/cloudinary');
+const Deleteoncloudinary = require('../../../middleware/deletecloudinary');
+const UserComment = require('../../../models/users/usercommentscontroller');
 
 
 const adduserPost = async(req,res) => {
     try{
 
         const data = req.body
-        console.log(data)
+        // console.log(data)
 
         if(req.files){
             if(req.files.thumbnail){
-                data.thumbnail = req.files.thumbnail[0].filename
-                // if(fs.existsSync(`${filePath}/${predata.profile}`)){
-                //     fs.unlinkSync(`${filePath}/${predata.profile}`)
-                // }
+                // data.thumbnail = req.files.thumbnail[0].filename
+
+                const pro = req.files.thumbnail[0].path
+ 
+                    const res = await Uploadoncloudinary(pro);
+                    data.thumbnail = res.url;
+
             }
         }
 
@@ -38,25 +44,7 @@ const viewuserPost = async(req,res) => {
         const activeUsers = await User.find({ status: true }).select('_id');
         const activeUserIds = activeUsers.map(user => user._id);
 
-        // Fetch posts only from active users
-
-        // if(req.params.key){        
-        //     const response = await UserPost.find({
-        //         userr: { $in: activeUserIds},
-        //         $or:[
-        //         {title: {$regex : new RegExp(req.params.key)}},
-        //         {location: {$regex : new RegExp(req.params.key)}},
-        //         // {userr:{$regex : new RegExp(req.params.key)}},
-        //         {userr:{$regex : new RegExp({$in:req.params.key})}},
-        //         // {colors:{$regex : new RegExp({$in:req.params.key})}}
-        //     ]})
-        //     .populate('userr')
-        // }
-        // else{
             const response = await UserPost.find({ userr: { $in: activeUserIds } }).populate('userr');
-        // }
-
-        
 
         const file_path = `${req.protocol}://${req.get('host')}/keshaveBlog-files/user-posts/`;
         res.status(200).json({message:'Fetched',data:response,file_path})
@@ -77,14 +65,17 @@ const deleteuserPost = async(req,res) => {
     
             
             if(predata.thumbnail){
-                // data.thumbnail = req.files.thumbnail[0].filename
-                if(fs.existsSync(`${filePath}/${predata.thumbnail}`)){
-                    fs.unlinkSync(`${filePath}/${predata.thumbnail}`)
-                }
+                const ress = await Deleteoncloudinary(predata.thumbnail);
+
             }
         }
     
-        const response = await UserPost.deleteOne(req.params);
+        const response = await UserPost.deleteOne(req.params)
+        if (response) {
+            // await UserPost.deleteMany({ userr: req.params });
+            await UserComment.deleteMany({ posts: req.params });
+            console.log('Posts and their Comments deleted successfully');
+        }
         res.status(200).json({message:'Deleted',data:response})
     
     }
@@ -147,7 +138,7 @@ const fetchuserPostById = async(req,res)=>{
 
 const fetchsinglePostById = async(req,res)=>{
     try{
-        console.log(req.params)
+        // console.log(req.params)
         if(!req.params)return res.status(400).json({message:'Id not found'})
         const response = await UserPost.findById({_id:req.params._id})
         .populate('userr')

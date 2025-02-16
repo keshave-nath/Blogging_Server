@@ -9,6 +9,8 @@ const path = require('path');
 const otpData = require('../../../data/support');
 const UserPost = require('../../../models/users/userposts');
 const UserComment = require('../../../models/users/usercommentscontroller');
+const Deleteoncloudinary = require('../../../middleware/deletecloudinary');
+const Uploadoncloudinary = require('../../../middleware/cloudinary');
 // const otpData = require('../../../data/support');
 
 
@@ -278,11 +280,16 @@ const updateUser = async (req, res) => {
         // const  filePath = path.join('D:','ws-cube','react','Next_Js','backend','src','uploads','users');
         const filePath = path.resolve(__dirname, '../../../uploads/users');
 
-        if (req.files.profile) {
-            data.profile = req.files.profile[0].filename
-            if (fs.existsSync(`${filePath}/${predata.profile}`)) {
-                fs.unlinkSync(`${filePath}/${predata.profile}`)
+        if (req.files.profile[0]) {
+
+            const pro = req.files.profile[0].path
+            const ress = await Deleteoncloudinary(predata.profile);
+            // console.log(ress)
+            if (ress) {
+                const res = await Uploadoncloudinary(pro);
+                data.profile = res.url;
             }
+            
         }
     }
 
@@ -307,11 +314,23 @@ const updateUser = async (req, res) => {
     }
 };
 
+const viewSingleUser = async (req, res) => {
+    try {
+        const response = await User.findById(req.params)
+        // .populate('userrs')
+        const file_path = `${req.protocol}://${req.get('host')}/keshaveBlog-files/users/`;
+        res.status(200).json({ message: 'Fetched', data: response, file_path })
+    }
+    catch (error) {
+        console.log(error);
+    }
+}
+
 const deleteuser = async (req, res) => {
     try {
         const predata = await User.findById(req.params);
         const predata1 = await UserPost.find({ userr: req.params }).populate('userr');
-        console.log(predata1)
+        // console.log(predata1)
         if (predata) {
 
             // const  filePath = path.join('D:','ws-cube','react','Next_Js','Blogging_Website','server','src','uploads','users');
@@ -320,18 +339,14 @@ const deleteuser = async (req, res) => {
 
             if (predata.profile) {
                 // data.thumbnail = req.files.thumbnail[0].filename
-                if (fs.existsSync(`${filePath}/${predata.profile}`)) {
-                    fs.unlinkSync(`${filePath}/${predata.profile}`)
-                }
+                const ress = await Deleteoncloudinary(predata.profile);
             }
         }
         if (predata1) {
             const filePath1 = path.resolve(__dirname, '../../../uploads/user-posts');
-            predata1.forEach((item) => {
+            await predata1.forEach((item) => {
                 if (item.thumbnail) {
-                    if (fs.existsSync(`${filePath1}/${item.thumbnail}`)) {
-                        fs.unlinkSync(`${filePath1}/${item.thumbnail}`)
-                    }
+                    const ress =  Deleteoncloudinary(item.thumbnail);
                 }
             })
 
@@ -379,5 +394,6 @@ module.exports = {
     genrateOtpUser,
     updatePassword,
     deleteuser,
-    statusupdateuser
+    statusupdateuser,
+    viewSingleUser
 }

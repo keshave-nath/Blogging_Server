@@ -18,7 +18,7 @@ const { addTerms, viewTerms, deleteTerms, statusupdateTerms, multiDeleteTerms, f
 const { adduserComments, viewuserComments } = require("./users/user-comments/user-comments-controller");
 const { adduserPost, viewuserPost, deleteuserPost, statususerupdate, fetchuserPostById, fetchsinglePostById, searchPost } = require("./users/user-posts/user-posts-controller");
 
-const { registerUser, loginUser, updateUser, viewUser, genrateOtpUser, updatePassword, deleteuser, statusupdateuser } = require("./users/user/user-controller");
+const { registerUser, loginUser, updateUser, viewUser, genrateOtpUser, updatePassword, deleteuser, statusupdateuser, viewSingleUser } = require("./users/user/user-controller");
 
 module.exports = {
     adminLogin,
@@ -51,6 +51,7 @@ module.exports = {
     updatePassword,
     deleteuser,
     statusupdateuser,
+    viewSingleUser,
     
     adduserPost,
     viewuserPost,
