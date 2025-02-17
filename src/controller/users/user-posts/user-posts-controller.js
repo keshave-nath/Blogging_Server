@@ -36,23 +36,79 @@ const adduserPost = async(req,res) => {
     }
 }
 
-const viewuserPost = async(req,res) => {
-    try{
-        // const response = await UserPost.find()
-        // .populate('userr')
+// const viewuserPost = async(req,res) => {
+//     try{
+//         // const response = await UserPost.find()
+//         // .populate('userr')
+//         console.log(req.params.key)
 
+//         const activeUsers = await User.find({ status: true }).select('_id');
+//         const activeUserIds = activeUsers.map(user => user._id);
+        
+//         if(req.params.key){
+//             const  response = await UserPost.find({ userr: { $in: activeUserIds },
+//                 $or:[
+//                 {title: {$regex : new RegExp(req.params.key)}},
+//                 {caution: {$regex : new RegExp(req.params.key)}},
+//                 {location:{$regex : new RegExp(req.params.key)}},
+//                 {userr:{$regex : new RegExp({$in:req.params.key})}},
+//                 // post.comments.some((comment) => regex.test(comment.text));
+//                 // {colors:{$regex : new RegExp({$in:req.params.key})}}
+//             ] }).populate('userr');
+
+           
+//         }
+//         const  response = await UserPost.find({ userr: { $in: activeUserIds }, }).populate('userr');  
+        
+
+           
+
+//         const file_path = `${req.protocol}://${req.get('host')}/keshaveBlog-files/user-posts/`;
+//         res.status(200).json({message:'Fetched',data:response,file_path})
+//     }
+//     catch(error){
+//         console.log(error);
+//     }
+// }
+
+const viewuserPost = async (req, res) => {
+    try {
+        // console.log(req.params.key);
+
+        // Get active users' IDs
         const activeUsers = await User.find({ status: true }).select('_id');
         const activeUserIds = activeUsers.map(user => user._id);
 
-            const response = await UserPost.find({ userr: { $in: activeUserIds } }).populate('userr');
+        let searchCriteria = { userr: { $in: activeUserIds } };
+
+        // Apply search filter if a key is provided
+        if (req.params.key) {
+            const regex = new RegExp(req.params.key, 'i'); // Case-insensitive search
+// console.log(regex)
+            const matchingUsers = await User.find({$or:[{ name: regex} ,
+               { username : regex,
+            }]}).select('_id');
+            const matchingUserIds = matchingUsers.map(user => user._id);
+
+            searchCriteria.$or = [
+                { title: regex },
+                { caution: regex },
+                { location: regex },
+                {userr:{ $in : matchingUserIds }}
+            ];
+        }
+        // console.log(searchCriteria)
+        // Fetch filtered or all posts
+        const response = await UserPost.find(searchCriteria).populate('userr');
 
         const file_path = `${req.protocol}://${req.get('host')}/keshaveBlog-files/user-posts/`;
-        res.status(200).json({message:'Fetched',data:response,file_path})
+        res.status(200).json({ message: 'Fetched', data: response, file_path });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server Error' });
     }
-    catch(error){
-        console.log(error);
-    }
-}
+};
+
 
 const deleteuserPost = async(req,res) => {
     try{
