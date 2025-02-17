@@ -85,7 +85,7 @@ const viewuserPost = async (req, res) => {
         if (req.params.key) {
             const regex = new RegExp(req.params.key, 'i'); // Case-insensitive search
 // console.log(regex)
-            const matchingUsers = await User.find({$or:[{ name: regex} ,
+            const matchingUsers = await User.find({$or:[{ name: regex} ,{ type : regex } ,
                { username : regex,
             }]}).select('_id');
             const matchingUserIds = matchingUsers.map(user => user._id);
