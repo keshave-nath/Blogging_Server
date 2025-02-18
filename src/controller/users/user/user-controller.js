@@ -1,7 +1,5 @@
 const bcrypt = require('bcrypt');
-// const User = require('../../../models/users/user');
 const jwt = require('jsonwebtoken');
-// const User = require('../../../models/website/users/user');
 const nodemailer = require('nodemailer');
 const User = require('../../../models/users/users');
 const fs = require('fs');
@@ -11,7 +9,6 @@ const UserPost = require('../../../models/users/userposts');
 const UserComment = require('../../../models/users/usercommentscontroller');
 const Deleteoncloudinary = require('../../../middleware/deletecloudinary');
 const Uploadoncloudinary = require('../../../middleware/cloudinary');
-// const otpData = require('../../../data/support');
 
 
 const registerUser = async (req, res) => {
@@ -21,6 +18,10 @@ const registerUser = async (req, res) => {
     try {
         const saltRounds = 10;
         const { password, ...data } = req.body;
+
+        const ifValidEmail = await User.find({ email: req.body.email });
+
+        if(ifValidEmail) return res.status(400).json({message:'Email already exists'});
 
         bcrypt.hash(req.body.password, saltRounds, async (error, hash) => {
             if (error) return res.status(203).json({ message: 'somethin went wrong' });
@@ -61,24 +62,10 @@ const registerUser = async (req, res) => {
             transporter.sendMail(mailOptions, (error, success) => {
                 if (error) return res.status(500).json({ message: 'otp could not genrate', error })
 
-                // console.log(success)
-
                 res.status(200).json({ message: 'Registerd Successfully', data: responseWithoutPassword });
             })
 
-            // console.log(responseWithoutPassword);
-
-
-            // jwt.sign(responseWithoutPassword, process.env.JWT_KEY,{expiresIn: 60}, (error, token)=>{
-            //     if (error) return res.status(203).json({ message: 'somethin went wrong' });
-            //     res.status(200).json({ message: "success test user", data: responseWithoutPassword, auth: token });
-            // })
-
-
         });
-
-
-        // res.status(200).json({message:"success"})
 
     }
     catch (error) {
@@ -87,11 +74,11 @@ const registerUser = async (req, res) => {
 };
 
 const loginUser = async (req, res) => {
-    // console.log("req.body")
+
     const file_path = `${req.protocol}://${req.get('host')}/keshaveBlog-files/users`;
     try {
         const ifValidEmail = await User.find({ email: req.body.email });
-        // console.log(ifValidEmail[0]._id)
+
         const id = ifValidEmail[0]._id;
 
         if (ifValidEmail.length === 0) return res.status(400).json({ message: 'invalid User email ' });
@@ -102,7 +89,7 @@ const loginUser = async (req, res) => {
         })
 
         const { password, ...responseWithoutPassword } = ifValidEmail[0];
-        // console.log(responseWithoutPassword)
+
         bcrypt.compare(req.body.password, ifValidEmail[0].password, async (err, result) => {
             if (err) return res.status(203).json({ message: 'somethin went wrong' });
 
@@ -134,7 +121,7 @@ const loginUser = async (req, res) => {
 const viewUser = async (req, res) => {
     try {
         const response = await User.find()
-        // .populate('userrs')
+
         const file_path = `${req.protocol}://${req.get('host')}/keshaveBlog-files/users/`;
         res.status(200).json({ message: 'Fetched', data: response, file_path })
     }
@@ -190,10 +177,6 @@ const updatePassword = async (req, res) => {
 
         if (Number(req.body.userotp) !== (sentOtp)) return res.status(401).json({ message: 'please enter a valid otp' });
 
-
-
-        // res.status(200).json({message:'email has updated', data: response});
-
         const saltRounds = 10;
         const { password, ...data } = req.body;
 
@@ -202,9 +185,6 @@ const updatePassword = async (req, res) => {
 
             data.password = hash;
 
-            // const dataToSave = new User(data);
-
-            // const response = await dataToSave.save();
             const response = await User.updateOne(
                 { email: req.body.email },
                 {
@@ -212,9 +192,6 @@ const updatePassword = async (req, res) => {
                 }
 
             );
-            // console.log(response);
-
-            // const { password, ...responseWithoutPassword } = response._doc;
 
             const transporter = nodemailer.createTransport({
                 service: 'gmail',
@@ -227,9 +204,9 @@ const updatePassword = async (req, res) => {
             const mailOptions = {
                 from: 'noreply@mail.com',
                 to: req.body.email,
-                subject: 'Welcome to Frank and Oak',
+                subject: 'Welcome to Blogging Website',
                 html: `<div style="text-align: center;">
-                      <h1 >Welcome to Frank and Oak </h1>
+                      <h1 >Welcome to Blogging Website </h1>
                         <h2 >${req.body.email}</h2>
                         <div >
                             <img class="" src='https://i.pinimg.com/originals/bc/9e/4a/bc9e4a15c3b226b8914e57e543defe9e.png' width='150px' height='150px'/>
@@ -242,24 +219,10 @@ const updatePassword = async (req, res) => {
             transporter.sendMail(mailOptions, (error, success) => {
                 if (error) return res.status(500).json({ message: 'otp could not genrate', error })
 
-                // console.log(success)
-
                 res.status(200).json({ message: 'Registerd Successfully', data: response });
             })
 
-            // console.log(responseWithoutPassword);
-
-
-            // jwt.sign(responseWithoutPassword, process.env.JWT_KEY,{expiresIn: 60}, (error, token)=>{
-            //     if (error) return res.status(203).json({ message: 'somethin went wrong' });
-            //     res.status(200).json({ message: "success test user", data: responseWithoutPassword, auth: token });
-            // })
-
-
         });
-
-
-        // res.status(200).json({message:"success"})
 
     }
     catch (error) {
@@ -271,13 +234,12 @@ const updatePassword = async (req, res) => {
 const updateUser = async (req, res) => {
 
     const data = req.body;
-    // console.log("idsss",req.params)
 
     const predata = await User.findById(req.params);
 
 
     if (req.files) {
-        // const  filePath = path.join('D:','ws-cube','react','Next_Js','backend','src','uploads','users');
+
         const filePath = path.resolve(__dirname, '../../../uploads/users');
 
         if (req.files.profile[0]) {
@@ -292,8 +254,6 @@ const updateUser = async (req, res) => {
         }
     }
 
-    // console.log(data);
-
     try {
         const response = await User.updateOne(
             req.params,
@@ -305,7 +265,7 @@ const updateUser = async (req, res) => {
         const file_path = `${req.protocol}://${req.get('host')}/keshaveBlog-files/users`;
 
         res.status(200).json({ message: 'data updated successfully', data: response, file_path });
-        // console.log(file_path)
+
     }
     catch (error) {
         console.log(error);
@@ -316,7 +276,6 @@ const updateUser = async (req, res) => {
 const viewSingleUser = async (req, res) => {
     try {
         const response = await User.findById(req.params)
-        // .populate('userrs')
         const file_path = `${req.protocol}://${req.get('host')}/keshaveBlog-files/users/`;
         res.status(200).json({ message: 'Fetched', data: response, file_path })
     }
@@ -329,15 +288,13 @@ const deleteuser = async (req, res) => {
     try {
         const predata = await User.findById(req.params);
         const predata1 = await UserPost.find({ userr: req.params }).populate('userr');
-        // console.log(predata1)
+
         if (predata) {
 
-            // const  filePath = path.join('D:','ws-cube','react','Next_Js','Blogging_Website','server','src','uploads','users');
             const filePath = path.resolve(__dirname, '../../../uploads/users');
             
 
             if (predata.profile) {
-                // data.thumbnail = req.files.thumbnail[0].filename
                 const ress = await Deleteoncloudinary(predata.profile);
             }
         }
@@ -349,12 +306,6 @@ const deleteuser = async (req, res) => {
                 }
             })
 
-            // if (predata1.thumbnail) {
-            //     // data.thumbnail = req.files.thumbnail[0].filename
-            //     if (fs.existsSync(`${filePath1}/${predata1.thumbnail}`)) {
-            //         fs.unlinkSync(`${filePath1}/${predata1.thumbnail}`)
-            //     }
-            // }
         }
 
         const response = await User.deleteOne(req.params);
@@ -374,7 +325,6 @@ const deleteuser = async (req, res) => {
 const statusupdateuser = async (req, res) => {
     try {
 
-        // console.log(req.body.newvalues,req.params)
         const response = await User.updateOne(req.params, {
             $set: { status: req.body.newvalues }
         })

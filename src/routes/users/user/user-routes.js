@@ -2,8 +2,6 @@ const express = require('express');
 const { registerUser, loginUser, updateUser, viewUser, genrateOtpUser, updatePassword, deleteuser, statusupdateuser, viewSingleUser } = require('../../../controller/controllers');
 const storage = require('../../../middleware/multer');
 const multer = require('multer');
-// const { registerUser, loginUser, genrateOtpUser, updatePassword } = require('../../../controller/controller');
-// const { registerUser } = require('../../../controllers/controllers');
 
 const uploads = multer({storage: storage('users')}).fields([
     {

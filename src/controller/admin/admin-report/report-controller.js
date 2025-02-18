@@ -56,8 +56,6 @@ const statusupdatereport = async(req,res) => {
 
 const multiDeletereport= async(req,res)=>{
     try{
-        //  console.log("hello")
-        // console.log(req.body)
         const response = await reportModel.deleteMany({_id:{$in:req.body.ids}})
         res.status(200).json({message:"Data Deleted"})
     }
